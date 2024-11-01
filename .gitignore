@@ -1,0 +1,5 @@
+# ignore checkpoints
+models/*
+wandb/*
+weights/*
+data/*
