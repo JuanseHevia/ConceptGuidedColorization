@@ -52,11 +52,16 @@ def train_PCN(args):
 
             # Train Discriminator
             D.zero_grad()
-            real_outputs = D(torch.cat((real_images, global_hint), dim=1))
+            _in_tensor = torch.cat((real_images, global_hint), dim=1)
+            real_outputs = D(_in_tensor)
+
+            # NOTE update real labels shape
+            real_labels = real_labels.view(-1, 1)
             d_loss_real = criterion_GAN(real_outputs, real_labels)
 
             fake_images = G(inputs, global_hint)
             fake_outputs = D(torch.cat((fake_images, global_hint), dim=1))
+            fake_labels = fake_labels.view(-1, 1)
             d_loss_fake = criterion_GAN(fake_outputs, fake_labels)
 
             d_loss = (d_loss_real + d_loss_fake) * args.lambda_GAN
