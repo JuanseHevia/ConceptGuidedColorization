@@ -11,7 +11,8 @@ from tqdm import tqdm
 from data_loader import p2c_loader  # Assumes p2c_loader function loads data specifically for palette-to-colorization
 import palette_model.ColorizationModel as PCN
 from util import process_image, process_palette_lab, process_global_lab
-import time 
+import time
+import wandb
 
 def train_PCN(args):
     device = args.device
@@ -87,6 +88,8 @@ def train_PCN(args):
             d_scheduler.step(d_loss)
 
         # Logging
+        wandb.log({"d_loss": d_loss.item(), "g_loss": g_loss.item(), "epoch": epoch + 1,
+                    "g_smoothL1": g_loss_smoothL1.item(), "g_GAN": g_loss_GAN.item()})
         if (epoch + 1) % args.log_interval == 0:
             elapsed_time = time.time() - start_time
             print(f'Elapsed time [{elapsed_time:.4f}], Epoch [{epoch + 1}/{args.num_epochs}], '
@@ -132,4 +135,9 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     os.makedirs(args.pal2color_dir, exist_ok=True)
+
+    # initialize wandb
+    wandb.init(project='palette2colorization', entity='jh216',
+               config={**vars(args)})
+    
     train_PCN(args)
