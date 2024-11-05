@@ -267,19 +267,28 @@ class global_network(nn.Module):
         self.fourD = convrelu(512, 512)
         self.image_size = image_size
 
-    def forward(self, x, dim):
-        n = 2
-        out = self.oneD(x)
+    def forward(self, x, dim, target_reduction):
+        # x.size() = [B, 16, 256, 256]
+        # x is an expanded global hint vector
+        orig_dims = x.size()
+        x = x.mean(dim=(2,3), keepdims=True).expand(orig_dims[0], orig_dims[1],
+                                                    target_reduction, target_reduction)
 
+
+        n = 2
+        out = self.oneD(x) # layer9 size : [2, 128, 128, 128]
+        # out size: [B, 128, 256, 256]
         if dim >= 256:
             n = 4
-            out = self.twoD(out)
+            out = self.twoD(out) # layer8 size : [B, 256, 64, 64]
+            # out size: [B, 256, 256, 256]
         if dim == 512:
             n = 8
             out = self.threeD(out)
-            out = self.fourD(out)
+            # out size: []
+            out = self.fourD(out) # layer4 size : 
 
-        out = out.repeat(1, 1, int(self.image_size / n), int(self.image_size / n))
+        # out = out.repeat(1, 1, int(self.image_size / n), int(self.image_size / n))
         return out
 
 
@@ -318,18 +327,18 @@ class UNet(nn.Module):
         layer3_2 = self.convlayer3_2(layer2)
         layer4 = self.convlayer4(layer3)
 
-        global_net512 = self.globalnet512(side_input, 512)
+        global_net512 = self.globalnet512(side_input, 512, 32)
         layer4 = layer4 + global_net512
         layer5 = self.convlayer5(layer4)
         layer6 = self.convlayer6(layer5)
         layer7 = self.convlayer7(layer6)
 
         layer8 = self.convlayer8(layer7, layer3_2)
-        global_net256 = self.globalnet256(side_input, 256)
+        global_net256 = self.globalnet256(side_input, 256, 64)
         layer8 = layer8 + global_net256
 
         layer9 = self.convlayer9(layer8, layer2_2)
-        global_net128 = self.globalnet128(side_input, 128)
+        global_net128 = self.globalnet128(side_input, 128, 128)
         layer9 = layer9 + global_net128
 
         layer10 = self.convlayer10(layer9, layer1_2_2)
