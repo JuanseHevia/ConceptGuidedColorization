@@ -128,6 +128,7 @@ if __name__ == '__main__':
     parser.add_argument('--save_interval', type=int, default=10, help='Interval for saving models')
     parser.add_argument('--pal2color_dir', type=str, default='./checkpoints', help='Directory to save models')
     parser.add_argument('--device', type=str, default='cuda', help='Device to use for training')
+    parser.add_argument('--cap_data_size', type=int, default=None, help='Cap the number of data samples')
     args = parser.parse_args()
 
     os.makedirs(args.pal2color_dir, exist_ok=True)
