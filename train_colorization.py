@@ -19,7 +19,7 @@ def train_PCN(args):
     start_time = time.time()
     # Load dataset
     print("Loading dataset...")
-    train_loader, imsize = p2c_loader(args.batch_size)
+    train_loader, imsize = p2c_loader(args.batch_size, cap=args.cap_data_size)
     print("Dataset loaded. Took {} seconds.".format(time.time() - start_time))
 
     # Initialize GAN models
@@ -105,8 +105,8 @@ def prepare_data(images, palettes, always_give_global_hint, device):
     batch = images.size(0)
     imsize = images.size(3)
 
-    inputs, labels = process_image(images, batch, imsize)
-    for_global = process_palette_lab(palettes, batch)
+    inputs, labels = process_image(images, batch, imsize) # labels size [2,2,256,256] , inputs size [2,1,256,256]
+    for_global = process_palette_lab(palettes, batch) # for_global size [2,15,1,1]
     global_hint = process_global_lab(for_global, batch, always_give_global_hint)
 
     inputs = inputs.to(device)
@@ -122,8 +122,8 @@ if __name__ == '__main__':
     parser.add_argument('--lr', type=float, default=0.0002, help='Learning rate')
     parser.add_argument('--weight_decay', type=float, default=0.0001, help='Weight decay for optimizer')
     parser.add_argument('--lambda_GAN', type=float, default=10.0, help='Weight for GAN loss') # in the paper they use 10
-    parser.add_argument('--add_L', action='store_true', help='Add L channel to input')
-    parser.add_argument('--always_give_global_hint', action='store_true', help='Always provide global hint')
+    parser.add_argument('--add_L', action='store_true', default=True, help='Add L channel to input')
+    parser.add_argument('--always_give_global_hint', action='store_true', default=True, help='Always provide global hint')
     parser.add_argument('--log_interval', type=int, default=10, help='Interval for logging')
     parser.add_argument('--save_interval', type=int, default=10, help='Interval for saving models')
     parser.add_argument('--pal2color_dir', type=str, default='./checkpoints', help='Directory to save models')
