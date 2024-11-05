@@ -6,15 +6,21 @@ import torch.optim as optim
 from torch.optim import lr_scheduler
 from torch.utils.data import DataLoader
 import argparse
+
+from tqdm import tqdm
 from data_loader import p2c_loader  # Assumes p2c_loader function loads data specifically for palette-to-colorization
 import palette_model.ColorizationModel as PCN
 from util import process_image, process_palette_lab, process_global_lab
+import time 
 
 def train_PCN(args):
     device = args.device
-
+    
+    start_time = time.time()
     # Load dataset
+    print("Loading dataset...")
     train_loader, imsize = p2c_loader(args.batch_size)
+    print("Dataset loaded. Took {} seconds.".format(time.time() - start_time))
 
     # Initialize GAN models
     G = PCN.UNet(imsize, args.add_L).to(device)
@@ -33,7 +39,7 @@ def train_PCN(args):
     # Training loop
     print('Starting training...')
     start_time = time.time()
-    for epoch in range(args.num_epochs):
+    for epoch in tqdm(range(args.num_epochs)):
         for _, (images, palettes) in enumerate(train_loader):
             # Process input data
             palettes = palettes.view(-1, 5, 3).cpu().data.numpy()

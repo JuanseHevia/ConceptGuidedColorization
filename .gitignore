@@ -3,3 +3,4 @@ models/*
 wandb/*
 weights/*
 data/*
+data.zip

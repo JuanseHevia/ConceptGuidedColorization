@@ -130,7 +130,7 @@ def p2c_loader(batch_size):
     train_loader = torch.utils.data.DataLoader(dataset=train_dataset,
                                                 batch_size=batch_size,
                                                 shuffle=True,
-                                                num_workers=2)
+                                                num_workers=4) # NOTE: num_workers was originally 2
 
     imsize = 256
     return train_loader, imsize
