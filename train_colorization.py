@@ -11,7 +11,7 @@ import palette_model.ColorizationModel as PCN
 from util import process_image, process_palette_lab, process_global_lab
 
 def train_PCN(args):
-    device = "mps"
+    device = args.device
 
     # Load dataset
     train_loader, imsize = p2c_loader(args.batch_size)
@@ -90,7 +90,6 @@ def train_PCN(args):
 def prepare_data(images, palettes, always_give_global_hint, device):
     # NOTE: important: i'm keeping the add_L as True always here
 
-
     # Assumes process_image, process_palette_lab, and process_global_lab from util.py are available
     batch = images.size(0)
     imsize = images.size(3)
@@ -117,6 +116,7 @@ if __name__ == '__main__':
     parser.add_argument('--log_interval', type=int, default=10, help='Interval for logging')
     parser.add_argument('--save_interval', type=int, default=10, help='Interval for saving models')
     parser.add_argument('--pal2color_dir', type=str, default='./checkpoints', help='Directory to save models')
+    parser.add_argument('--device', type=str, default='cuda', help='Device to use for training')
     args = parser.parse_args()
 
     os.makedirs(args.pal2color_dir, exist_ok=True)
