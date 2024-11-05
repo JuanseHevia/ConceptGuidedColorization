@@ -121,7 +121,7 @@ if __name__ == '__main__':
     parser.add_argument('--num_epochs', type=int, default=100, help='Number of training epochs')
     parser.add_argument('--lr', type=float, default=0.0002, help='Learning rate')
     parser.add_argument('--weight_decay', type=float, default=0.0001, help='Weight decay for optimizer')
-    parser.add_argument('--lambda_GAN', type=float, default=1.0, help='Weight for GAN loss')
+    parser.add_argument('--lambda_GAN', type=float, default=10.0, help='Weight for GAN loss') # in the paper they use 10
     parser.add_argument('--add_L', action='store_true', help='Add L channel to input')
     parser.add_argument('--always_give_global_hint', action='store_true', help='Always provide global hint')
     parser.add_argument('--log_interval', type=int, default=10, help='Interval for logging')
