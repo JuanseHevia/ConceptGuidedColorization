@@ -103,3 +103,34 @@ class ColorizationDataset(data.Dataset):
 
     def to_data_loader(self):
         return torch.utils.data.DataLoader(self, batch_size=self.batch_size, shuffle=True, num_workers=self.num_workers)
+    
+class Image_Dataset(data.Dataset):
+    def __init__(self, image_dir, pal_dir):
+        with open(image_dir, 'rb') as f:
+            self.image_data = np.asarray(pickle.load(f)) / 255
+
+        with open(pal_dir, 'rb') as f:
+            self.pal_data = rgb2lab(np.asarray(pickle.load(f))
+                                    .reshape(-1, 5, 3) / 256
+                                    , illuminant='D50')
+
+        self.data_size = self.image_data.shape[0]
+
+    def __len__(self):
+        return self.data_size
+
+    def __getitem__(self, idx):
+        return self.image_data[idx], self.pal_data[idx]
+    
+def p2c_loader(batch_size):
+    train_img_path = './data/bird256/train_palette/train_images_origin.txt'
+    train_pal_path = './data/bird256/train_palette/train_palette_origin.txt'
+
+    train_dataset = Image_Dataset(train_img_path, train_pal_path)
+    train_loader = torch.utils.data.DataLoader(dataset=train_dataset,
+                                                batch_size=batch_size,
+                                                shuffle=True,
+                                                num_workers=2)
+
+    imsize = 256
+    return train_loader, imsize

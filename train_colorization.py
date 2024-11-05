@@ -11,11 +11,10 @@ import palette_model.ColorizationModel as PCN
 from util import process_image, process_palette_lab, process_global_lab
 
 def train_PCN(args):
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    device = "mps"
 
     # Load dataset
-    # TODO: create data loader properly
-    train_loader, imsize = p2c_loader(args.dataset, args.batch_size, 0)
+    train_loader, imsize = p2c_loader(args.batch_size)
 
     # Initialize GAN models
     G = PCN.UNet(imsize, args.add_L).to(device)
@@ -35,10 +34,10 @@ def train_PCN(args):
     print('Starting training...')
     start_time = time.time()
     for epoch in range(args.num_epochs):
-        for i, (images, palettes) in enumerate(train_loader):
+        for _, (images, palettes) in enumerate(train_loader):
             # Process input data
             palettes = palettes.view(-1, 5, 3).cpu().data.numpy()
-            inputs, real_images, global_hint = prepare_data(images, palettes, args.always_give_global_hint, args.add_L, device)
+            inputs, real_images, global_hint = prepare_data(images, palettes, args.always_give_global_hint, device)
             batch_size = inputs.size(0)
 
             # Labels for GAN loss
@@ -107,7 +106,7 @@ def prepare_data(images, palettes, always_give_global_hint, device):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--dataset', type=str, required=True, help='Path to the dataset')
+    # parser.add_argument('--dataset', type=str,  help='Path to the dataset')
     parser.add_argument('--batch_size', type=int, default=16, help='Batch size for training')
     parser.add_argument('--num_epochs', type=int, default=100, help='Number of training epochs')
     parser.add_argument('--lr', type=float, default=0.0002, help='Learning rate')

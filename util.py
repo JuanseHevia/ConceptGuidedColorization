@@ -131,7 +131,7 @@ def process_global_lab(input_lab, batch_size, always_give_global_hint):
         B_hist = torch.round(torch.rand(batch_size, 1, 1, 1))
         for l in range(batch_size):
             if B_hist[l].numpy() == 0:
-                X_hist[l] = torch.rand(15)
+                X_hist[l] = torch.rand((15, 1, 1))
 
     global_input = torch.cat([X_hist, B_hist], 1)
     return global_input
