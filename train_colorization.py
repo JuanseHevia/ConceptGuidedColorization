@@ -125,12 +125,12 @@ if __name__ == '__main__':
     parser.add_argument('--lr', type=float, default=0.0002, help='Learning rate')
     parser.add_argument('--weight_decay', type=float, default=0.0001, help='Weight decay for optimizer')
     parser.add_argument('--lambda_GAN', type=float, default=10.0, help='Weight for GAN loss') # in the paper they use 10
-    parser.add_argument('--add_L', action='store_true', default=True, help='Add L channel to input')
-    parser.add_argument('--always_give_global_hint', action='store_true', default=True, help='Always provide global hint')
+    parser.add_argument('--add_L', default=True, help='Add L channel to input')
+    parser.add_argument('--always_give_global_hint', default=True, help='Always provide global hint')
     parser.add_argument('--log_interval', type=int, default=10, help='Interval for logging')
     parser.add_argument('--save_interval', type=int, default=10, help='Interval for saving models')
     parser.add_argument('--pal2color_dir', type=str, default='./checkpoints', help='Directory to save models')
-    parser.add_argument('--device', type=str, default='cuda', help='Device to use for training')
+    parser.add_argument('--device', type=str, default='mps', help='Device to use for training')
     parser.add_argument('--cap_data_size', type=int, default=None, help='Cap the number of data samples')
     args = parser.parse_args()
 

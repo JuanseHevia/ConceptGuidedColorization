@@ -7,6 +7,7 @@ from skimage.color import rgb2lab
 import warnings
 import open_clip
 from tqdm import tqdm
+from PIL import Image
 
 class PAT_Dataset(data.Dataset):
     def __init__(self, src_path, trg_path, input_dict):
@@ -90,16 +91,41 @@ class ColorizationDataset(data.Dataset):
     """
     # TODO: Implement this class
 
-    def __init__(self, dataset, batch_size, num_workers):
-        self.dataset = dataset
+    def __init__(self, image_path, palette_path, batch_size, num_workers,
+                 cap:int = None):
+        self.img_path = image_path
+        self.palette_path = palette_path
+
+        # load filenames for images and palettes
+        self.image_filenames = os.listdir(image_path)
+        self.palette_filenames = os.listdir(palette_path)
+
+        if cap:
+            self.image_filenames = self.image_filenames[:cap]
+            self.palette_filenames = self.palette_filenames[:cap]
+
         self.batch_size = batch_size
         self.num_workers = num_workers
 
     def __len__(self):
-        return len(self.dataset)
+        return len(self.image_filenames)
 
     def __getitem__(self, idx):
-        return self.dataset[idx]
+        # load image as a torch tensor
+        img = Image.open(os.path.join(self.img_path, self.image_filenames[idx]))
+        img = np.array(img)[:, :, :3] / 255.0
+        img = img.transpose(2, 0, 1)
+        img = torch.Tensor(img).to(torch.float32)
+
+        # load palette as a torch tensor
+        palette = np.load(os.path.join(self.palette_path, self.palette_filenames[idx]))
+        palette = rgb2lab(np.asarray(palette)
+                                    .reshape(-1, 5, 3) / 256
+                                    , illuminant='D50')
+        
+        palette = torch.Tensor(palette).to(torch.float32)
+
+        return img, palette
 
     def to_data_loader(self):
         return torch.utils.data.DataLoader(self, batch_size=self.batch_size, shuffle=True, num_workers=self.num_workers)
@@ -130,14 +156,18 @@ class Image_Dataset(data.Dataset):
         return self.image_data[idx], self.pal_data[idx]
     
 def p2c_loader(batch_size, cap:int = None):
-    train_img_path = './data/bird256/train_palette/train_images_origin.txt'
-    train_pal_path = './data/bird256/train_palette/train_palette_origin.txt'
+    train_img_path = './data/bird256/train_palette/images'
+    train_pal_path = './data/bird256/train_palette/palettes'
 
-    train_dataset = Image_Dataset(train_img_path, train_pal_path, cap=cap)
-    train_loader = torch.utils.data.DataLoader(dataset=train_dataset,
-                                                batch_size=batch_size,
-                                                shuffle=True,
-                                                num_workers=4) # NOTE: num_workers was originally 2
+    # train_dataset = Image_Dataset(train_img_path, train_pal_path, cap=cap)
+    train_dataset = ColorizationDataset(train_img_path, train_pal_path, cap=cap,
+                                        batch_size=batch_size, num_workers=4)\
+    
+    train_loader = train_dataset.to_data_loader()
+    # train_loader = torch.utils.data.DataLoader(dataset=train_dataset,
+    #                                             batch_size=batch_size,
+    #                                             shuffle=True,
+    #                                             num_workers=4) # NOTE: num_workers was originally 2
 
     imsize = 256
     return train_loader, imsize

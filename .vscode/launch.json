@@ -10,7 +10,7 @@
             "request": "launch",
             "program": "train_colorization.py",
             "console": "integratedTerminal",
-            "args": "--device mps --batch_size 2 --add_L --always_give_global_hint"
+            "args": "--device mps --batch_size 2"
         }
     ]
 }
