@@ -41,7 +41,7 @@ def train_PCN(args):
     print('Starting training...')
     start_time = time.time()
     for epoch in tqdm(range(args.num_epochs)):
-        for _, (images, palettes) in enumerate(train_loader):
+        for step_idx, (images, palettes) in enumerate(train_loader):
             # Process input data
             palettes = palettes.view(-1, 5, 3).cpu().data.numpy()
             inputs, real_images, global_hint = prepare_data(images, palettes, args.always_give_global_hint, device)
@@ -87,9 +87,12 @@ def train_PCN(args):
             g_scheduler.step(g_loss)
             d_scheduler.step(d_loss)
 
-        # Logging
-        wandb.log({"d_loss": d_loss.item(), "g_loss": g_loss.item(), "epoch": epoch + 1,
-                    "g_smoothL1": g_loss_smoothL1.item(), "g_GAN": g_loss_GAN.item()})
+            # Logging
+            if step_idx % args.step_log_interval == 0:
+                wandb.log({"d_loss": d_loss.item(), "g_loss": g_loss.item(), "epoch": epoch + 1,
+                            "g_smoothL1": g_loss_smoothL1.item(), "g_GAN": g_loss_GAN.item()})
+
+
         if (epoch + 1) % args.log_interval == 0:
             elapsed_time = time.time() - start_time
             print(f'Elapsed time [{elapsed_time:.4f}], Epoch [{epoch + 1}/{args.num_epochs}], '
@@ -128,9 +131,10 @@ if __name__ == '__main__':
     parser.add_argument('--add_L', default=True, help='Add L channel to input')
     parser.add_argument('--always_give_global_hint', default=True, help='Always provide global hint')
     parser.add_argument('--log_interval', type=int, default=10, help='Interval for logging')
+    parser.add_argument('--step_log_interval', type=int, default=100, help='Interval for saving models')
     parser.add_argument('--save_interval', type=int, default=10, help='Interval for saving models')
     parser.add_argument('--pal2color_dir', type=str, default='./checkpoints', help='Directory to save models')
-    parser.add_argument('--device', type=str, default='mps', help='Device to use for training')
+    parser.add_argument('--device', type=str, default='cuda', help='Device to use for training')
     parser.add_argument('--cap_data_size', type=int, default=None, help='Cap the number of data samples')
     args = parser.parse_args()
 
