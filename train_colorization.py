@@ -44,7 +44,8 @@ def train_PCN(args):
         for step_idx, (images, palettes) in enumerate(train_loader):
             # Process input data
             palettes = palettes.view(-1, 5, 3).cpu().data.numpy()
-            inputs, real_images, global_hint = prepare_data(images, palettes, args.always_give_global_hint, device)
+            inputs, real_images, global_hint = prepare_data(images, palettes, args.always_give_global_hint, 
+                                                            device, custom_scaling=args.lab_scaling)
             batch_size = inputs.size(0)
 
             # Labels for GAN loss
@@ -104,15 +105,15 @@ def train_PCN(args):
             torch.save(D.state_dict(), os.path.join(args.pal2color_dir, f'{epoch + 1}_D.ckpt'))
             print('Model checkpoints saved.')
 
-def prepare_data(images, palettes, always_give_global_hint, device):
+def prepare_data(images, palettes, always_give_global_hint, device, custom_scaling=True):
     # NOTE: important: i'm keeping the add_L as True always here
 
     # Assumes process_image, process_palette_lab, and process_global_lab from util.py are available
     batch = images.size(0)
     imsize = images.size(3)
 
-    inputs, labels = process_image(images, batch, imsize) # labels size [2,2,256,256] , inputs size [2,1,256,256]
-    for_global = process_palette_lab(palettes, batch) # for_global size [2,15,1,1]
+    inputs, labels = process_image(images, batch, imsize, custom_scaling=custom_scaling) # labels size [2,2,256,256] , inputs size [2,1,256,256]
+    for_global = process_palette_lab(palettes, batch, custom_scaling=custom_scaling) # for_global size [2,15,1,1]
     global_hint = process_global_lab(for_global, batch, always_give_global_hint)
 
     inputs = inputs.to(device)
@@ -136,6 +137,7 @@ if __name__ == '__main__':
     parser.add_argument('--pal2color_dir', type=str, default='./checkpoints', help='Directory to save models')
     parser.add_argument('--device', type=str, default='cuda', help='Device to use for training')
     parser.add_argument('--cap_data_size', type=int, default=None, help='Cap the number of data samples')
+    parser.add_argument("--lab_scaling", default=True, help="Use the scaling from the paper, one of ['custom', 'vanilla']") 
     args = parser.parse_args()
 
     os.makedirs(args.pal2color_dir, exist_ok=True)

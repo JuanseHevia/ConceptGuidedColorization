@@ -4,3 +4,5 @@ wandb/*
 weights/*
 data/*
 data.zip
+.DS_Store
+__pycache__/data_loader.cpython-310.pyc

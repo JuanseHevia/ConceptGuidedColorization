@@ -74,7 +74,7 @@ class Embed(nn.Module):
         return doc
 
 # ======================== For processing data ======================== #
-def process_image(image_data, batch_size, imsize):
+def process_image(image_data, batch_size, imsize, custom_scaling=True):
     input = torch.zeros(batch_size, 1, imsize, imsize)
     labels = torch.zeros(batch_size, 2, imsize, imsize)
     images_np = image_data.numpy().transpose((0, 2, 3, 1))
@@ -84,25 +84,28 @@ def process_image(image_data, batch_size, imsize):
         img_l = img_lab[:, :, 0] / 100
         input[k] = torch.from_numpy(np.expand_dims(img_l, 0))
 
-        img_a_scale = (img_lab[:, :, 1:2] + 88) / 185
-        img_b_scale = (img_lab[:, :, 2:3] + 127) / 212
+        if custom_scaling: # use scaling from the paper
+            img_a_scale = (img_lab[:, :, 1:2] + 88) / 185
+            img_b_scale = (img_lab[:, :, 2:3] + 127) / 212
 
         img_ab_scale = np.concatenate((img_a_scale, img_b_scale), axis=2)
         labels[k] = torch.from_numpy(img_ab_scale.transpose((2, 0, 1)))
     return input, labels
 
-def process_palette_ab(pal_data, batch_size):
-    img_a_scale = (pal_data[:, :, 1:2] + 88) / 185
-    img_b_scale = (pal_data[:, :, 2:3] + 127) / 212
+def process_palette_ab(pal_data, batch_size, custom_scaling=True):
+    if custom_scaling:
+        img_a_scale = (pal_data[:, :, 1:2] + 88) / 185
+        img_b_scale = (pal_data[:, :, 2:3] + 127) / 212
     img_ab_scale = np.concatenate((img_a_scale, img_b_scale), axis=2)
     ab_for_global = torch.from_numpy(img_ab_scale).float()
     ab_for_global = ab_for_global.view(batch_size, 10).unsqueeze(2).unsqueeze(2)
     return ab_for_global
 
-def process_palette_lab(pal_data, batch_size):
+def process_palette_lab(pal_data, batch_size, custom_scaling=True):
     img_l = pal_data[:, :, 0:1] / 100
-    img_a_scale = (pal_data[:, :, 1:2] + 88) / 185
-    img_b_scale = (pal_data[:, :, 2:3] + 127) / 212
+    if custom_scaling:
+        img_a_scale = (pal_data[:, :, 1:2] + 88) / 185
+        img_b_scale = (pal_data[:, :, 2:3] + 127) / 212
     img_lab_scale = np.concatenate((img_l, img_a_scale, img_b_scale), axis=2)
     lab_for_global = torch.from_numpy(img_lab_scale).float()
     lab_for_global = lab_for_global.view(batch_size, 15).unsqueeze(2).unsqueeze(2)
