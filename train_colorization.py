@@ -23,6 +23,9 @@ def train_PCN(args):
     train_loader, imsize = p2c_loader(args.batch_size, cap=args.cap_data_size)
     print("Dataset loaded. Took {} seconds.".format(time.time() - start_time))
 
+    # setup LAB scaling
+    use_custom_scaling =  args.lab_scaling == "custom"
+
     # Initialize GAN models
     G = PCN.UNet(imsize, args.add_L).to(device)
     D = PCN.Discriminator(args.add_L, imsize).to(device)
@@ -45,7 +48,8 @@ def train_PCN(args):
             # Process input data
             palettes = palettes.view(-1, 5, 3).cpu().data.numpy()
             inputs, real_images, global_hint = prepare_data(images, palettes, args.always_give_global_hint, 
-                                                            device, custom_scaling=args.lab_scaling)
+                                                            device, 
+                                                            custom_scaling=use_custom_scaling)
             batch_size = inputs.size(0)
 
             # Labels for GAN loss
