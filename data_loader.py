@@ -159,15 +159,10 @@ def p2c_loader(batch_size, cap:int = None):
     train_img_path = './data/bird256/train_palette/images'
     train_pal_path = './data/bird256/train_palette/palettes'
 
-    # train_dataset = Image_Dataset(train_img_path, train_pal_path, cap=cap)
     train_dataset = ColorizationDataset(train_img_path, train_pal_path, cap=cap,
                                         batch_size=batch_size, num_workers=4)\
     
     train_loader = train_dataset.to_data_loader()
-    # train_loader = torch.utils.data.DataLoader(dataset=train_dataset,
-    #                                             batch_size=batch_size,
-    #                                             shuffle=True,
-    #                                             num_workers=4) # NOTE: num_workers was originally 2
 
     imsize = 256
     return train_loader, imsize
