@@ -87,6 +87,9 @@ def process_image(image_data, batch_size, imsize, custom_scaling=True):
         if custom_scaling: # use scaling from the paper
             img_a_scale = (img_lab[:, :, 1:2] + 88) / 185
             img_b_scale = (img_lab[:, :, 2:3] + 127) / 212
+        else:
+            img_a_scale = img_lab[:, :, 1:2]
+            img_b_scale = img_lab[:, :, 2:3]
 
         img_ab_scale = np.concatenate((img_a_scale, img_b_scale), axis=2)
         labels[k] = torch.from_numpy(img_ab_scale.transpose((2, 0, 1)))
@@ -96,6 +99,10 @@ def process_palette_ab(pal_data, batch_size, custom_scaling=True):
     if custom_scaling:
         img_a_scale = (pal_data[:, :, 1:2] + 88) / 185
         img_b_scale = (pal_data[:, :, 2:3] + 127) / 212
+    else:
+        img_a_scale = pal_data[:, :, 1:2]
+        img_b_scale = pal_data[:, :, 2:3]
+
     img_ab_scale = np.concatenate((img_a_scale, img_b_scale), axis=2)
     ab_for_global = torch.from_numpy(img_ab_scale).float()
     ab_for_global = ab_for_global.view(batch_size, 10).unsqueeze(2).unsqueeze(2)
@@ -106,6 +113,9 @@ def process_palette_lab(pal_data, batch_size, custom_scaling=True):
     if custom_scaling:
         img_a_scale = (pal_data[:, :, 1:2] + 88) / 185
         img_b_scale = (pal_data[:, :, 2:3] + 127) / 212
+    else:
+        img_a_scale = pal_data[:, :, 1:2]
+        img_b_scale = pal_data[:, :, 2:3]
     img_lab_scale = np.concatenate((img_l, img_a_scale, img_b_scale), axis=2)
     lab_for_global = torch.from_numpy(img_lab_scale).float()
     lab_for_global = lab_for_global.view(batch_size, 15).unsqueeze(2).unsqueeze(2)
